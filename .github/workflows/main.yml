@@ -1,13 +1,36 @@
-name: Example workflow for Python using Snyk
-on: push
+name: Test dependencies for security issues with Snyk
+
+on: 
+  push
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  security:
+  dependencies-check:
     runs-on: ubuntu-latest
     steps:
-      - run: npm install --location=global snyk
-      - run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      - uses: actions/checkout@master
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python3 -
+    - name: Show environment
+      run: | 
+        python --version
+        pip --version
+        poetry --version
+    - uses: snyk/actions/setup@master
+    - name: Install Python dependencies with Poetry
+      run: poetry install -v
+    - name: Run tests
+      run: poetry run pytest
+    - name: Test dependencies with Snyk
+      run: snyk test
+      env:
+        SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
+    - name: Monitor dependencies for security issues with Snyk
+      run: snyk monitor
+      env:
+        SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
