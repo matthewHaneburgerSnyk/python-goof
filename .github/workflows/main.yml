@@ -22,6 +22,8 @@ jobs:
         pip --version
         poetry --version
     - uses: snyk/actions/setup@master
+    - name: Initialize Poetry
+      run: poetry init
     - name: Install Python dependencies with Poetry
       run: poetry install -v
     - name: Run tests
